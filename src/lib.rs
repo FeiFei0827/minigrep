@@ -28,13 +28,22 @@ impl Config {
     }
 }
 
+// pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+//     let contents = fs::read_to_string(config.file_path)?;
+// // ?运算符用于将可能的错误传播给调用者进行处理。如果读取文件出现错误，函数将立即返回错误结果并终止执行。
+//     println!("With text:\n{contents}");
+//
+//     Ok(())
+//     //如果函数执行成功并成功打印文件内容，那么将返回一个表示成功的 Result 对象，其中结果为空。
+// }
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents = fs::read_to_string(config.file_path)?;
-// ?运算符用于将可能的错误传播给调用者进行处理。如果读取文件出现错误，函数将立即返回错误结果并终止执行。
-    println!("With text:\n{contents}");
+
+    for line in search(&config.query, &contents) {
+        println!("{line}");
+    }
 
     Ok(())
-    //如果函数执行成功并成功打印文件内容，那么将返回一个表示成功的 Result 对象，其中结果为空。
 }
 pub fn parse_config(args: &[String]) -> Config {
     let query = args[1].clone();
@@ -48,4 +57,29 @@ pub fn parse_config(args: &[String]) -> Config {
 //
 //     println!("With text:\n{contents}");
 // }
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
 
+    for line in contents.lines() {
+        if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn one_result() {
+        let query = "duct";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+    }
+}
